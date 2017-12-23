@@ -12,21 +12,26 @@ def index():
 def stock_price():
   ticker = request.form['stock']
   price_type = request.form['type'] 
-  data = pd.read_json("https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?ticker="+str(ticker)+"&api_key=82ocY42PXsgZMnTGWcCD",orient="table")
-  table=data["datatable"]["data"]
-  time_period = 22
   dic = {'close':5,'open':2,'high':3,'low':4}
   k = dic[str(price_type)]
   X = []
   Y = []
-  for i in range(time_period):
-      cur = table[-1-i]
-      cur_date = pd.to_datetime(str(cur[1])).date()
-      cur_price = float(cur[k])
-      X.insert(0,cur_date)
-      Y.insert(0,cur_price)
+  msg = ""
+  try:
+    data = pd.read_json("https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?ticker="+str(ticker)+"&api_key=82ocY42PXsgZMnTGWcCD",orient="table")
+    table=data["datatable"]["data"]
+    time_period = 22
+    for i in range(time_period):
+        cur = table[-1-i]
+        cur_date = pd.to_datetime(str(cur[1])).date()
+        cur_price = float(cur[k])
+        X.insert(0,cur_date)
+        Y.insert(0,cur_price)
+    msg = str(ticker)+":"+str(price_type)
+  except:
+    msg = "Invalid Stock Ticker"
   p = figure(title="Quandl WIKI Stock Prices 2017",x_axis_label='date',x_axis_type="datetime")
-  p.line(pd.to_datetime(X), Y, legend=str(ticker)+":"+str(price_type), line_width=2)
+  p.line(pd.to_datetime(X), Y, legend=msg, line_width=2)
   script, div = components(p)
         
   return render_template('graph.html',script=script, div=div)
